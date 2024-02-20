@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-public class UserController {
+public class  UserController {
     @GetMapping( "/hello")
     public String hello() {
         return "你好";
