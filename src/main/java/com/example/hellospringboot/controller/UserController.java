@@ -1,9 +1,16 @@
 package com.example.hellospringboot.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.example.hellospringboot.entity.User;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.hellospringboot.api.CommonResult;
+import com.example.hellospringboot.entity.UmsAdmin;
 import com.example.hellospringboot.mapper.Usermapper;
+import com.example.hellospringboot.service.UmsAdminService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,43 +24,71 @@ public class  UserController {
 
     @Autowired
     private Usermapper usermapper;
+    @Autowired
+    private UmsAdminService adminService;
 
-    @GetMapping( "/user")
-    public List query() {
-        List<User> list = usermapper.selectList(null);
-        System.out.println(list);
-        return list;
+    @ApiOperation("根据用户名或姓名分页获取用户列表")
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult<IPage<UmsAdmin>> list(@RequestParam(value = "keyword", required = false) String keyword,
+                                              @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+                                              @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
+                                              ) {
+        Page<UmsAdmin> adminList = adminService.list(keyword, pageSize, pageNum);
+        return CommonResult.success(adminList);
     }
-    @PostMapping("/user")
-    public String save(User user) {
-        int i = usermapper.insert(user);
-        if (i>0){
-            return "插入成功";
-        }else {
-            return "插入失败";
+
+    @ApiOperation("修改帐号状态")
+    @RequestMapping(value = "/updateStatus/{id}", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult updateStatus(@PathVariable Long id,@RequestParam(value = "status") Integer status) {
+        UmsAdmin umsAdmin = new UmsAdmin();
+        umsAdmin.setStatus(status);
+        LambdaUpdateWrapper<UmsAdmin> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(UmsAdmin::getId, id).set(UmsAdmin::getStatus, status);
+        boolean count=adminService.update(updateWrapper);
+        if (count) {
+            return CommonResult.success(true);
         }
+        return CommonResult.failed();
     }
-    @PutMapping("/user")
-    public String update(User user) {
-        if (usermapper.updateById(user)>0){
-            return "更新成功";
-        }else {
-            return "更新失败";
+    @ApiOperation(value = "用户注册")
+    @RequestMapping(value = "admin/register", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult<UmsAdmin> register(@Validated @RequestBody UmsAdmin umsAdminParam) {
+        UmsAdmin umsAdmin = adminService.register(umsAdminParam);
+        if (umsAdmin == null) {
+            return CommonResult.failed();
         }
+        return CommonResult.success(umsAdmin);
     }
-    @DeleteMapping("/user/{id}")
-    public String delete(@PathVariable("id") long id) {
-        if (usermapper.deleteById(id)>0){
-            return "删除成功";
-        }else {
-            return "删除失败";
+
+    @ApiOperation("删除指定用户信息")
+    @RequestMapping(value = "admin/delete/{id}", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult delete(@PathVariable Long id) {
+        int count = adminService.delete(id);
+        if (count > 0) {
+            return CommonResult.success(count);
         }
+        return CommonResult.failed();
+    }
+
+    @ApiOperation("修改指定用户信息")
+    @RequestMapping(value = "admin/update/{id}", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult update(@PathVariable Long id, @RequestBody UmsAdmin admin) {
+        int count = adminService.update(id, admin);
+        if (count > 0) {
+            return CommonResult.success(count);
+        }
+        return CommonResult.failed();
     }
     @PostMapping("/login")
-    public String login(User user) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+    public String login(UmsAdmin user) {
+        QueryWrapper<UmsAdmin> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username",user.getUsername()).eq("password",user.getPassword());
-        User user1 = usermapper.selectOne(queryWrapper);
+        UmsAdmin user1 = usermapper.selectOne(queryWrapper);
         if (user1!=null){
             return "登录失败";
         }else {

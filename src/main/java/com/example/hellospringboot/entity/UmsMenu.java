@@ -2,11 +2,12 @@ package com.example.hellospringboot.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
-
-public class ums_menu {
+@TableName("ums_menu")
+public class UmsMenu {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 

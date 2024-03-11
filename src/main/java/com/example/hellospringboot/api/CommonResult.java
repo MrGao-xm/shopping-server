@@ -52,7 +52,7 @@ public class CommonResult<T> {
      * 失败返回结果
      * @param errorCode 错误码
      */
-    public static <T> CommonResult<T> failed(IErrorCode errorCode) {
+    public static <T> CommonResult<T> failed(ResultCode errorCode) {
         return new CommonResult<T>(errorCode.getCode(), null, null);
     }
 
@@ -77,7 +77,7 @@ public class CommonResult<T> {
      * 失败返回结果
      */
     public static <T> CommonResult<T> failed() {
-        return failed(ResultCode(FAILED));
+        return failed(ResultCode.FAILED);
     }
 
     /**
